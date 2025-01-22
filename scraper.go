@@ -11,10 +11,17 @@ import (
 	"strconv"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/magiconair/properties"
 )
 
 func main() {
 	log.Print("Start scraping")
+
+	// Читаем настройки
+	p := properties.MustLoadFile("scraper.properties", properties.UTF8)
+	title, _ := p.Get("title")
+	fmt.Print(title)
+
 	chapterSizeCollector := colly.NewCollector(
 		colly.AllowedDomains("mangabuff.ru"),
 	)
@@ -66,7 +73,7 @@ func main() {
 		})
 		// Пройдемся циклом по всем страницам глав
 		for i := 1; i < mangaSize; i++ {
-			imageCollector.Visit(fmt.Sprintf("%s%d", "https://mangabuff.ru/manga/vyberi-menya/1/", i))
+			imageCollector.Visit(fmt.Sprintf("https://mangabuff.ru/manga/%s/1/%d", title, i))
 		}
 
 	})
@@ -76,7 +83,7 @@ func main() {
 	})
 	// Узнаем сколько глав в наличии и колбек на это действие образует контекст, в рамках которого уже новым
 	// коллектором запустим скачивание ;-) ну ты понялпо ебанутому все, то есть я хотел сказать в стиле GO
-	chapterSizeCollector.Visit("https://mangabuff.ru/manga/vyberi-menya/")
+	chapterSizeCollector.Visit(fmt.Sprintf("https://mangabuff.ru/manga/%s/", title))
 }
 
 func downloadFile(URL, fileName string) error {
